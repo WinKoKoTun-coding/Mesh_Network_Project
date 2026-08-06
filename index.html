@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesh Radar & Off-Grid Messenger</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://oglama.com/recorder.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery.min.js"></script>
+
+    <!-- 🌓 Theme Toggle Script (Light/Dark Mode Handler) -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            const btnText = document.getElementById('theme-btn-text');
+            if (btnText) {
+                btnText.innerText = newTheme === 'light' ? 'Dark' : 'Light';
+            }
+        }
+    </script>
+
+    <!-- 🚀 Modals & Responsive UI Styles (Fixed Overflow & Mobile Look) -->
+    <style>
+        .walkthrough-overlay,
+        .info-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .walkthrough-box,
+        .info-modal-box {
+            background: var(--panel-bg, #1e293b);
+            border: 1px solid var(--panel-border, #334155);
+            color: var(--text-primary, #f8fafc);
+            width: 90%;
+            max-width: 480px;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            animation: scaleUp 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes scaleUp {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .walkthrough-steps-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #475569;
+            transition: all 0.3s;
+        }
+
+        .step-dot.active {
+            background: #38bdf8;
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        .walkthrough-content h3,
+        .info-modal-box h3 {
+            margin-bottom: 12px;
+            font-size: 20px;
+            color: #38bdf8;
+        }
+
+        .walkthrough-content p,
+        .info-modal-box p {
+            font-size: 14px;
+            color: var(--text-muted, #94a3b8);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .walkthrough-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .walkthrough-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s;
+        }
+
+        .btn-prev {
+            background: transparent;
+            color: var(--text-muted, #94a3b8);
+            border: 1px solid var(--panel-border, #334155);
+        }
+
+        .btn-next,
+        .btn-finish,
+        .info-close-btn {
+            background: #0284c7;
+            color: #ffffff;
+        }
+
+        .walkthrough-btn:hover,
+        .info-close-btn:hover {
+            opacity: 0.9;
+        }
+
+        .info-steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .info-steps-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-muted, #94a3b8);
+            line-height: 1.4;
+        }
+
+        .info-steps-list span.badge {
+            background: #0284c7;
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* 📱 Responsive Adjustments for Top Bar Controls (Fixing clutter on Mobile) */
+        .top-controls-bar {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 9999;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            background: var(--panel-bg);
+            padding: 6px 10px;
+            border-radius: 24px;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 100vw;
+            overflow-x: auto;
+        }
+
+        .control-pill {
+            background: transparent;
+            color: var(--text-primary);
+            border: none;
+            padding: 4px 8px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .control-pill:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .device-header-card {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 12px;
+        }
+
+        .device-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bulk-actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .bulk-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .bulk-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 🌓 Top Right Streamlined Controls Bar (Clean & Mobile Friendly) -->
+    <div class="top-controls-bar">
+        <!-- 🟢 Network Status & Mesh Users Badge -->
+        <!-- <div
+            style="display: flex; align-items: center; gap: 5px; font-size: 11px; padding-right: 6px; border-right: 1px solid var(--panel-border);">
+            <span id="network-status-dot"
+                style="width: 7px; height: 7px; background-color: #00ff88; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #00ff88;"></span>
+            <span id="network-status-text" style="font-weight: bold; color: #00ff88;">Online</span>
+            <span style="color: var(--text-muted);">| 👥 <strong id="mesh-user-count"
+                    style="color: var(--accent-green);">0</strong></span>
+        </div> -->
+
+        <!-- ❓ Help Guide Button -->
+        <button class="control-pill" onclick="openWalkthrough()" title="View Walkthrough Guide">
+            ❓
+        </button>
+
+        <!-- 💡 How it works -->
+        <button class="control-pill" onclick="openInfoModal()">
+            💡 <span class="hide-mobile">How it works</span>
+        </button>
+
+        <!-- ☀️ Theme Toggle -->
+        <button class="control-pill" id="theme-toggle-btn" onclick="toggleTheme()">
+            ☀️ <span id="theme-btn-text">Light</span>
+        </button>
+    </div>
+
+    <!-- Main Grid Layout -->
+    <div class="main-container">
+
+        <!-- ================= LEFT: RADAR SECTION ================= -->
+        <div class="radar-panel">
+
+            <div class="user-config-container"
+                style="padding: 12px; background: var(--card-item-bg); margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--panel-border); display: flex; align-items: center; justify-content: space-between;">
+                <label style="color: var(--accent-green); font-weight: bold; font-size: 14px;">👤 Enter Your Device
+                    Name</label>
+                <input type="text" id="my-device-name" value="MyDevice-Phone"
+                    style="padding: 6px 12px; border-radius: 5px; border: 1px solid var(--input-border-color); background: var(--input-bg-color); color: var(--text-primary); width: 50%; font-family: inherit;"
+                    onchange="saveMyName()">
+            </div>
+
+            <div class="radar-container">
+                <h2 class="title">Connect Network Devices</h2>
+                <p class="subtitle">Searching for nearby peers...</p>
+
+                <div class="radar-screen">
+                    <div class="radar-laser"></div>
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
+                    <div class="center-dot"></div>
+
+                    <div id="device-container"></div>
+                </div>
+            </div>
+
+            <!-- Nearby Active Devices Header & Stacked Buttons -->
+            <div id="device-list-container">
+                <div class="device-header-card">
+                    <div class="device-header-top">
+                        <h3 class="panel-header" style="margin: 0; font-size: 15px;">📡 Nearby Active Devices</h3>
+                        <span class="list-title" style="font-size: 13px; color: var(--text-muted);">
+                            Total: <span id="device-count"
+                                style="color: var(--accent-green); font-weight: bold;">0</span>
+                        </span>
+                    </div>
+
+                    <div class="bulk-actions-grid">
+                        <button class="bulk-btn" onclick="sendBroadcastAlert()"
+                            style="background: var(--accent-red); color: #fff;">
+                            🚨 Alert All
+                        </button>
+                        <button class="bulk-btn" onclick="sendBroadcastMessage()"
+                            style="background: var(--accent-blue); color: #fff;">
+                            📢 Msg All
+                        </button>
+                    </div>
+                </div>
+
+                <ul id="device-list">
+                    <li class="empty-list">Searching for connected phones...</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ================= RIGHT: MESSAGING & SOS PANEL ================= -->
+        <div class="chat-panel">
+
+            <div class="sos-box">
+                <h3 class="sos-header">⚠️ Emergency SOS Broadcast</h3>
+                <div class="form-group">
+                    <label>Rescue Contact Number:</label>
+                    <input type="text" id="sos-contact" placeholder="ဥပမာ - 09123456789 သို့မဟုတ် ရဲစခန်း" required>
+                </div>
+                <div class="form-group">
+                    <label>Emergency Message:</label>
+                    <textarea id="sos-message" placeholder="လက်ရှိ ကူညီပေးမည့်သူ လိုအပ်နေပါသည်။ လမ်းပိတ်မိနေပါသည်..."
+                        rows="2"></textarea>
+                </div>
+
+                <button class="sos-btn" onclick="triggerSOS()">BROADCAST SOS NOW</button>
+            </div>
+
+            <div class="inbox-box">
+                <h3 class="panel-header">📩 Live Mesh Inbox (Offline LAN)</h3>
+                <div id="message-list-container" class="message-feed">
+                    <p class="empty-inbox">No messages received yet.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ================= HOW IT WORKS POPUP MODAL ================= -->
+    <div id="info-modal" class="info-modal-overlay">
+        <div class="info-modal-box">
+            <h3>💡 How Mesh Network Works</h3>
+            <ul class="info-steps-list">
+                <li>
+                    <span class="badge">1</span>
+                    <span>အင်တာနက်/မိုဘိုင်းလိုင်း လုံးဝမလိုဘဲ အနီးအနားဖုန်းတွေချင်းချင်း Wi-Fi / Bluetooth ဖြင့်
+                        တိုက်ရိုက်ချိတ်ဆက်ပေးသည်။</span>
+                </li>
+                <li>
+                    <span class="badge">2</span>
+                    <span>တဆင့်ပြီးတဆင့် (Multi-hop) သတင်းအချက်အလက်များနှင့် အရေးပေါ် SOS များကို
+                        လွှင့်ထုတ်ပေးသည်။</span>
+                </li>
+                <li>
+                    <span class="badge">3</span>
+                    <span>အရေးပေါ်အခြေအနေများတွင် အနီးဆုံးမိတ်ဆွေ သို့မဟုတ် ကယ်ဆယ်ရေးအဖွဲ့ထံ ဆက်သွယ်ရန်
+                        အကောင်းဆုံးဖြစ်သည်။</span>
+                </li>
+            </ul>
+            <button class="walkthrough-btn info-close-btn" onclick="closeInfoModal()">နားလည်ပါပြီ</button>
+        </div>
+    </div>
+
+    <!-- ================= DIRECT MESSAGE POPUP (MODAL) ================= -->
+    <div id="dm-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeDMModal()">&times;</span>
+            <h3 id="dm-target-title">Direct Message to DEVICE</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">
+                Target IP: <span id="dm-target-ip">192.168.1.5</span>
+            </p>
+
+            <div class="form-group">
+                <label>Your Message:</label>
+                <textarea id="dm-text" placeholder="စာတိုရေးရန်..." rows="3"></textarea>
+            </div>
+
+            <div id="dm-media-preview" style="margin-bottom:8px;"></div>
+            <div style="display:flex; gap:10px; margin-bottom:12px; align-items:center; flex-wrap:wrap;">
+                <label
+                    style="cursor:pointer; background: var(--input-bg-color); padding:6px 10px; border-radius:4px; font-size:12px; border:1px solid var(--input-border-color); color: var(--text-primary);">
+                    📁 Upload Image <input type="file" accept="image/*" capture="environment"
+                        onchange="handleFileSelect(event, 'dm')" style="display:none;" />
+                </label>
+                <button type="button" onclick="openCameraModal('dm')"
+                    style="background: var(--input-bg-color); color: var(--text-primary); padding:6px 10px; border-radius:4px; font-size:12px; border:1px solid var(--input-border-color); cursor:pointer;">
+                    📸 Capture Photo
+                </button>
+                <button type="button" onclick="toggleVoiceRecord('dm')" id="dm-mic-btn"
+                    style="background: var(--input-bg-color); color: var(--text-primary); padding:6px 10px; border-radius:4px; font-size:12px; border:1px solid var(--input-border-color); cursor:pointer;">
+                    🎙️ Record Voice
+                </button>
+            </div>
+
+            <button class="send-dm-btn" onclick="sendDirectMessage()" id="send-dm-btn">Send Direct Message</button>
+        </div>
+    </div>
+
+    <!-- ================= WELCOME WALKTHROUGH MODAL ================= -->
+    <div id="walkthrough-modal" class="walkthrough-overlay">
+        <div class="walkthrough-box">
+            <div class="walkthrough-steps-indicator">
+                <span class="step-dot active" id="dot-0"></span>
+                <span class="step-dot" id="dot-1"></span>
+                <span class="step-dot" id="dot-2"></span>
+            </div>
+
+            <div class="walkthrough-content">
+                <h3 id="walkthrough-title">🌐 Welcome to Off-Grid Mesh</h3>
+                <p id="walkthrough-desc">အင်တာနက်လိုင်း လုံးဝမရရှိတော့တဲ့ အခြေအနေတွေမှာတောင် ဒီစနစ်က အနီးအနားက
+                    ဖုန်းတွေနဲ့ ချိတ်ဆက်ပြီး အရေးပေါ်သတင်းအချက်အလက်တွေကို အလွယ်တကူ ပေးပို့နိုင်စေပါတယ်။</p>
+            </div>
+
+            <div class="walkthrough-buttons">
+                <button class="walkthrough-btn btn-prev" id="walkthrough-prev-btn" onclick="prevWalkthroughStep()"
+                    style="display: none;">နောက်သို့</button>
+                <button class="walkthrough-btn btn-next" id="walkthrough-next-btn"
+                    onclick="nextWalkthroughStep()">ရှေ့သို့</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        function openInfoModal() {
+            document.getElementById('info-modal').style.display = 'flex';
+        }
+        function closeInfoModal() {
+            document.getElementById('info-modal').style.display = 'none';
+        }
+
+        function openWalkthrough() {
+            currentWalkthroughStep = 0;
+            showWalkthroughStep(currentWalkthroughStep);
+            document.getElementById('walkthrough-modal').style.display = 'flex';
+        }
+
+        const walkthroughSteps = [
+            {
+                title: "🌐 Welcome to Off-Grid Mesh",
+                desc: "အင်တာနက်လိုင်း လုံးဝမရရှိတော့တဲ့ အခြေအနေတွေမှာတောင် ဒီစနစ်က အနီးအနားက ဖုန်းတွေနဲ့ ချိတ်ဆက်ပြီး အရေးပေါ်သတင်းအချက်အလက်တွေကို အလွယ်တကူ ပေးပို့နိုင်စေပါတယ်။"
+            },
+            {
+                title: "👤 Setup Your Device Name",
+                desc: "ဘယ်ဘက်အပေါ်ဆုံးရှိ 'Enter Your Device Name' နေရာမှာ သင့်ရဲ့ဖုန်းနာမည် သို့မဟုတ် ကိုယ်ပိုင်အမှတ်အသားကို ရိုက်ထည့်ပြီး အလွယ်တကူ ခွဲခြားနိုင်ပါတယ်။"
+            },
+            {
+                title: "🚨 Emergency SOS & Radar",
+                desc: "ပတ်ဝန်းကျင်မှာ ရှိနေတဲ့ Active Devices များကို Radar ပေါ်မှာ မြင်တွေ့နိုင်ပြီး လိုအပ်ပါက SOS Broadcast ခလုတ်ကိုနှိပ်၍ အရေးပေါ် အကူအညီ ချက်ချင်းတောင်းခံနိုင်ပါတယ်။"
+            }
+        ];
+
+        let currentWalkthroughStep = 0;
+
+        function showWalkthroughStep(step) {
+            document.getElementById('walkthrough-title').innerText = walkthroughSteps[step].title;
+            document.getElementById('walkthrough-desc').innerText = walkthroughSteps[step].desc;
+
+            for (let i = 0; i < walkthroughSteps.length; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (i === step) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            }
+
+            const prevBtn = document.getElementById('walkthrough-prev-btn');
+            const nextBtn = document.getElementById('walkthrough-next-btn');
+
+            if (step === 0) {
+                prevBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'block';
+            }
+
+            if (step === walkthroughSteps.length - 1) {
+                nextBtn.innerText = 'စတင်အသုံးပြုမည်';
+                nextBtn.className = 'walkthrough-btn btn-finish';
+            } else {
+                nextBtn.innerText = 'ရှေ့သို့';
+                nextBtn.className = 'walkthrough-btn btn-next';
+            }
+        }
+
+        function nextWalkthroughStep() {
+            if (currentWalkthroughStep < walkthroughSteps.length - 1) {
+                currentWalkthroughStep++;
+                showWalkthroughStep(currentWalkthroughStep);
+            } else {
+                closeWalkthrough();
+            }
+        }
+
+        function prevWalkthroughStep() {
+            if (currentWalkthroughStep > 0) {
+                currentWalkthroughStep--;
+                showWalkthroughStep(currentWalkthroughStep);
+            }
+        }
+
+        function closeWalkthrough() {
+            const modal = document.getElementById('walkthrough-modal');
+            modal.style.display = 'none';
+            localStorage.setItem('mesh_walkthrough_seen', 'true');
+        }
+
+        /* 
+         * 🛠️ FIXED: Network & Mesh Status Logic 
+         * အင်တာနက်လိုင်း သက်သက်မဟုတ်ဘဲ Mesh Peer Count (ချိတ်ထားသော Device အရေအတွက်) ပေါ်မူတည်၍ 
+         * Offline/Online အတိအကျပြောင်းလဲစေမည့် Function 
+         */
+        function updateNetworkStatusIndicator(peerCount) {
+            const dot = document.getElementById("network-status-dot");
+            const text = document.getElementById("network-status-text");
+            const countEl = document.getElementById("mesh-user-count");
+
+            if (countEl) {
+                countEl.innerText = peerCount;
+            }
+
+            // တကယ်လို့ Mesh ထဲမှာ Device ချိတ်ဆက်ထားမှု (peerCount) ရှိနေရင် သို့မဟုတ် အင်တာနက်ရနေရင် Online ပြမယ်
+            // လိုင်းဖြတ်ထားပြီး ချိတ်ထားတဲ့ Device လည်း မရှိတော့ဘူးဆိုရင် Offline (Mesh) လို့ ချက်ချင်းပြောင်းမယ်
+            const hasActivePeers = peerCount > 0;
+            const isBrowserOnline = navigator.onLine;
+
+            if (isBrowserOnline || hasActivePeers) {
+                if (dot && text) {
+                    dot.style.backgroundColor = "#00ff88";
+                    dot.style.boxShadow = "0 0 6px #00ff88";
+                    text.innerText = "Online";
+                    text.style.color = "#00ff88";
+                }
+            } else {
+                if (dot && text) {
+                    dot.style.backgroundColor = "#ff4444";
+                    dot.style.boxShadow = "0 0 6px #ff4444";
+                    text.innerText = "Offline (Mesh)";
+                    text.style.color = "#ff4444";
+                }
+            }
+        }
+
+        window.addEventListener('online', () => updateNetworkStatusIndicator(window.currentPeerCount || 0));
+        window.addEventListener('offline', () => updateNetworkStatusIndicator(window.currentPeerCount || 0));
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const hasSeen = localStorage.getItem('mesh_walkthrough_seen');
+            if (!hasSeen) {
+                document.getElementById('walkthrough-modal').style.display = 'flex';
+                showWalkthroughStep(0);
+            }
+            updateNetworkStatusIndicator(0);
+        });
+    </script>
+
+    <script src="script.js?v=1.0.3"></script>
+</body>
+
+</html>

@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0787e8" />
+  <title>FloodGuard AI Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static' , filename='styles.css') }}" />
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+  <div class="app-shell">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" aria-label="FloodGuard AI home">
+        <span class="brand-mark"><img src="{{ url_for('static', filename='image/logo.jpg')}}"
+            alt="FloodGuard AI"></span>
+        <span><b>AquaGuard AI</b><small>Regional Alert</small></span>
+      </a>
+      <nav class="side-nav" aria-label="Main navigation">
+        <a class="active" href="#home" id="hide1"><i data-lucide="home"></i> Home</a>
+        <a href="#map" id="hide2"><i data-lucide="map"></i> Live Map</a>
+        <a href="#reports" id="hide3"><i data-lucide="file-text"></i> Reports</a>
+        <a href="#safety" id="hide4"><i data-lucide="shield-alert"></i> Safety</a>
+        <a href="#support"><i data-lucide="headset"></i> Support</a>
+        <a href="#contact"><i data-lucide="phone"></i> Contact</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <!-- 🌟 Added How Offline Mesh Works Button (Placed right above Settings) -->
+        <a href="#" data-bs-toggle="modal" data-bs-target="#offlineMeshInfoModal" class="mb-2" style="color:#0284c7;">
+          <span><i class=" fa-solid fa-circle-question"></i></span>How
+          Offline Mesh Works
+        </a>
+      </div>
+    </aside>
+
+    <div class="page">
+      <!-- Top Navigation Header -->
+
+      <header class="topbar">
+        <button class="icon-button menu-button" id="menuButton" aria-label="Open menu">☰</button>
+        <div class="location">
+          <span class="pin">●</span>
+          <span><small>Current location</small><b>Thaton, Mon State</b></span>
+        </div>
+        <div class="ms-auto me-3">
+          <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold d-flex align-items-center gap-1"
+            data-bs-toggle="modal" data-bs-target="#meshQrModal">
+            <i class="fa-solid fa-qrcode"></i> <span>Connect Hotspot</span>
+          </button>
+        </div>
+        <div class="top-actions">
+          <div class="clock"><small>Fri, July 26</small><b id="clock">04:09:29</b></div>
+        </div>
+      </header>
+
+      <main class="content">
+        <!-- =================For HOME================= -->
+        <div id="home-view">
+          <div class="dashboard-wrapper">
+
+            <!-- TOP SELECTOR (အပေါ်ဆုံး မြိုနယ်ရွေးရန်) -->
+            <div class="city-selector-top">
+              <label for="citySelect">To select the township :</label>
+              <select id="citySelect" onchange="changeCity()">
+                <option value="thaton">သထုံ (Thaton)</option>
+                <option value="mawlamyine">မော်လမြိုင် (Mawlamyine)</option>
+                <option value="mudon">မုဒုံ (Mudon)</option>
+                <option value="thanbyuzayat">သံဖြူဇရပ် (Thanbyuzayat)</option>
+                <option value="ye">ရေး (Ye)</option>
+                <option value="chaungzon">ချောင်းဆုံ (Chaungzon)</option>
+                <option value="kyaikto">ကျိုက်ထို (Kyaikto)</option>
+                <option value="bilin">ဘီးလင်း (Bilin)</option>
+                <option value="paung">ပေါင် (Paung)</option>
+                <option value="kyaikmaraw">ကျိုက်မရော (Kyaikmaraw)</option>
+              </select>
+            </div>
+
+            <!-- MAIN LAYOUT (LEFT & RIGHT PANELS) -->
+            <div class="main-layout">
+
+              <!-- LEFT COLUMN: Main Temp Box + 4 Info Cards -->
+              <div class="left-column">
+
+                <!-- City & Main Temp Header -->
+                <div class="weather-header-left">
+                  <span class="location-tag">MON STATE, MYANMAR</span>
+                  <h1 class="city-title" id="cityName">...</h1>
+                  <div class="temp-hero-container">
+                    <div class="temp-val" id="currentTemp">--°</div>
+                    <div class="weather-condition">
+                      <i id="weatherIcon"></i>
+                      <span id="weatherDesc">Loading...</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 1-Day Data Display Cards (Static Metric Cards) -->
+                <div class="metrics-list">
+
+                  <div class="metric-card">
+                    <div class="metric-label">
+                      <i class="fa-solid fa-cloud-showers-heavy"></i>
+                      <span>Today Rainfall</span>
+                    </div>
+                    <span class="metric-val" id="rainVal">-- mm</span>
+                  </div>
+
+                  <div class="metric-card">
+                    <div class="metric-label">
+                      <i class="fa-solid fa-wind"></i>
+                      <span>Wind Speed</span>
+                    </div>
+                    <span class="metric-val" id="windVal">-- km/h</span>
+                  </div>
+
+                  <div class="metric-card">
+                    <div class="metric-label">
+                      <i class="fa-solid fa-droplet"></i>
+                      <span>Humidity</span>
+                    </div>
+                    <span class="metric-val" id="humidityVal">-- %</span>
+                  </div>
+
+                  <div class="metric-card">
+                    <div class="metric-label">
+                      <i class="fa-solid fa-cloud"></i>
+                      <span>Cloud Cover</span>
+                    </div>
+                    <span class="metric-val" id="cloudVal">-- %</span>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <!-- RIGHT COLUMN: Hourly Scroll & 10-Day Forecast -->
+              <div class="right-column">
+
+                <!-- Hourly Forecast Card -->
+                <div class="glass-card">
+                  <div class="card-title-bar" id="hourlyTitle">
+                    <i class="fa-regular fa-clock"></i> Hourly Forecast
+                  </div>
+                  <div class="hourly-scroll" id="hourlyList">
+                    <!-- Dynamic Hourly Items -->
+                  </div>
+                </div>
+
+                <!-- 10-Day Forecast Card -->
+                <div class="glass-card">
+                  <div class="card-title-bar">
+                    <i class="fa-regular fa-calendar-days"></i> 7-DAY FORECAST
+                  </div>
+                  <div class="daily-list" id="dailyList">
+                    <!-- Dynamic 10-Day Items -->
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <!-- =================For Live Map================= -->
+        <div id="map-view" class="map-view-container" style="display: none;">
+          <div class="card map-card">
+            <div class="map-header">
+              <div>
+                <h2>Live Regional Satellite Map</h2>
+              </div>
+            </div>
+            <div id="map"></div>
+          </div>
+          <div class="alerts-stack">
+
+            <!-- 1. Critical Red Banner -->
+            <div class="alert-card alert-critical">
+              <div class="alert-head">
+                <i data-lucide="alert-triangle"></i>
+                <h3>Critical Flood Warning</h3>
+              </div>
+              <p class="alert-body">Critical water level threshold exceeded. Severe flooding detected. Immediate
+                evacuation or emergency action required.</p>
+            </div>
+
+            <!-- 2. Warning Amber Banner -->
+            <div class="alert-card alert-warning">
+              <div class="alert-head">
+                <i data-lucide="alert-circle"></i>
+                <h3>Water Level Rising</h3>
+              </div>
+              <p class="alert-body">Abnormal increase in water levels detected. System is actively monitoring the
+                situation</p>
+            </div>
+
+            <!-- 3. Routine Green Banner -->
+            <div class="alert-card alert-success">
+              <div class="alert-head">
+                <i data-lucide="check-circle-2"></i>
+                <h3>System Check Complete</h3>
+              </div>
+              <p class="alert-body">Water levels are within safe parameters. No flood risks detected.</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-------------------For report----------->
+        <div id="reports-view" class="container-fluid py-4 dashboard-container">
+          <!-- Header & Stats -->
+          <div class="row mb-4 align-items-center g-3">
+            <div class="col-lg-6">
+              <div class="d-flex align-items-center gap-2">
+                <span class="p-2 bg-danger text-white rounded-3 fs-5"><i class="fa-solid fa-tower-broadcast"></i></span>
+                <div>
+                  <h4 class="fw-bold mb-0 text-dark">Rescue Dashboard</h4>
+                  <p class="text-muted small mb-0">Timeline of emergency calls and response by rescue teams</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="row g-2">
+                <div class="col-4">
+                  <div class="stat-card p-2 text-center"><span class="text-muted small d-block">Grand total</span>
+                    <h5 class="fw-bold mb-0 text-dark">{{ total_req }}</h5>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-card p-2 text-center"><span class="text-danger small fw-bold d-block">Very
+                      urgent</span>
+                    <h5 class="fw-bold mb-0 text-danger">{{ high_urgency }}</h5>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-card p-2 text-center"><span
+                      class="text-success small fw-bold d-block">Completion</span>
+                    <h5 class="fw-bold mb-0 text-success">{{ resolved_count }}</h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <!-- Form Column -->
+            <div class="col-lg-4">
+              <div class="custom-card p-4 sticky-top" style="top: 20px;">
+                <h5 class="mb-3 fw-bold text-dark"><i class="fa-solid fa-bullhorn text-danger"></i> Request help
+                </h5>
+                <form action="/add_request" method="POST" enctype="multipart/form-data">
+                  <div class="mb-3"><label class="form-label small text-secondary">Name</label><input type="text"
+                      class="form-control" name="name" required placeholder="Your name"></div>
+                  <div class="row mb-3">
+                    <div class="col-6"><label class="form-label small text-secondary">Phone number</label><input
+                        type="text" class="form-control" name="phone" required placeholder="09-xxxxxxxxx">
+                    </div>
+                    <div class="col-6"><label class="form-label small text-secondary">Population</label><input
+                        type="number" class="form-control" name="people_count" min="1" value="1" required>
+                    </div>
+                  </div>
+                  <div class="mb-3"><label class="form-label small text-secondary">Location</label><input type="text"
+                      class="form-control" name="location" required placeholder="Street, township"></div>
+                  <div class="mb-3">
+                    <label class="form-label small text-secondary">Emergency level</label>
+                    <select class="form-select" name="urgency">
+                      <option value="High">Very urgent (High)</option>
+                      <option value="Moderate">Moderate</option>
+                      <option value="Low">Ordinary</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small text-secondary">Status details</label>
+                    <textarea class="form-control" name="message" id="messageBox" rows="3" required
+                      placeholder="Details..."></textarea>
+                    <div class="d-flex flex-wrap gap-1 mt-2">
+                      <span class="quick-btn"
+                        onclick="setQuickMsg('ရေကြီးနေလို့ အိမ်ပေါ်ထပ်မှာ ပိတ်မိနေပါတယ်')">Flooded</span>
+                      <span class="quick-btn" onclick="setQuickMsg('အစားအသောက်နဲ့ သောက်ရေ အရေးပေါ်လိုနေပါတယ်')">Like
+                        food</span>
+                      <span class="quick-btn" onclick="setQuickMsg('နာမကျန်းသူ/ဆေးဝါး အရေးပေါ်လိုနေပါတယ်')"><i
+                          class="fa-solid fa-kit-medical"></i>
+                        Need medicine</span>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small text-secondary">Upload Image (Optional)</label>
+                    <input type="file" class="form-control" name="image" accept="image/*">
+                  </div>
+                  <button type="submit" class="btn btn-danger w-100 py-2 rounded-pill">Import</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Timeline Column -->
+            <div class="col-lg-8">
+              <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-stream me-2 text-danger"></i> Live Request
+                Timeline</h5>
+
+              {% for req in requests %}
+              <div class="timeline-item p-3 bg-white rounded-3 shadow-sm mb-4" id="post-item-{{ req.id }}">
+                <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                  <div>
+                    <h5 class="fw-bold text-dark mb-1">{{ req.name }}</h5>
+                    <p class="text-muted small mb-1"><i class="fa-solid fa-phone text-success"></i> {{ req.phone
+                      }} • <i class="fa-solid fa-users text-primary"></i> Population: {{ req.people_count }}
+                    </p>
+                    <p class="text-muted small mb-0"><i class="fa-solid fa-location-dot text-danger"></i> {{
+                      req.location }} • <i class="fa-regular fa-clock"></i> {{ req.timestamp }}</p>
+                  </div>
+                  <div class="d-flex gap-1 align-items-center">
+                    <span class="badge bg-danger bg-opacity-10 text-danger">{{ req.urgency }}</span>
+                    <span
+                      class="badge {% if req.status == 'Resolved' %}bg-success{% elif req.status == 'In Progress' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">{{
+                      req.status }}</span>
+                  </div>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 text-secondary my-3">{{ req.message }}</div>
+
+                {% if req.image_filename %}
+                <div class="mb-3">
+                  <img src="{{ url_for('static', filename='uploads/' + req.image_filename) }}" alt="Rescue Image"
+                    class="img-fluid rounded border" style="max-height: 200px; object-fit: cover; cursor: pointer;"
+                    data-bs-toggle="modal" data-bs-target="#imageModal{{ req.id }}">
+                </div>
+
+                <div class="modal fade" id="imageModal{{ req.id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content bg-transparent border-0">
+                      <div class="modal-header border-0">
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body text-center">
+                        <img src="{{ url_for('static', filename='uploads/' + req.image_filename) }}"
+                          alt="Zoomed Rescue Image" class="img-fluid rounded shadow-lg" style="max-height: 80vh;">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+
+                {% if req.status != 'Resolved' %}
+                <form action="/update_status/{{ req.id }}" method="POST" class="bg-light p-2 rounded border mb-3">
+                  <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <span class="small fw-bold text-secondary">Change status:</span>
+                    <select class="form-select form-select-sm flex-grow-1" name="status">
+                      <option value="Pending" {% if req.status=='Pending' %}selected{% endif %}>Pending
+                      </option>
+                      <option value="In Progress" {% if req.status=='In Progress' %}selected{% endif %}>In
+                        Progress</option>
+                      <option value="Resolved" {% if req.status=='Resolved' %}selected{% endif %}>Resolved
+                      </option>
+                    </select>
+                    <input type="password" class="form-control form-control-sm" name="rescue_key" placeholder="Team Key"
+                      style="width: 100px;" required>
+                    <button type="submit" class="btn btn-dark btn-sm">Change</button>
+                  </div>
+                </form>
+                {% endif %}
+
+                <hr class="text-muted opacity-25">
+
+                <!-- Reactions and Comments Summary Bar -->
+                <div class="d-flex justify-content-between align-items-center mb-2 px-1 text-muted small">
+                  <div>
+                    <span class="me-1">👍 {{ req.reaction_counts.like }}</span>
+                    <span class="me-1">❤️ {{ req.reaction_counts.love }}</span>
+                    <span class="me-1">🥰 {{ req.reaction_counts.care }}</span>
+                    <span>😆 {{ req.reaction_counts.haha }}</span>
+                  </div>
+                  <div>
+                    <span>{{ req.comments|length }} Comments</span>
+                  </div>
+                </div>
+
+                <!-- Facebook-style Action Buttons Bar with One-Time Restriction Script -->
+                <div class="d-flex justify-content-between align-items-center border-top border-bottom py-1 my-2">
+                  <div class="dropdown flex-fill text-center">
+                    <button class="btn btn-sm w-100 text-secondary dropdown-toggle border-0 shadow-none" type="button"
+                      data-bs-toggle="dropdown" aria-expanded="false" id="reactBtn{{ req.id }}">
+                      <i class="fa-regular fa-thumbs-up me-1"></i> <span id="reactText{{ req.id }}">Like</span>
+                    </button>
+                    <ul class="dropdown-menu shadow p-2">
+                      <li class="d-flex gap-2">
+                        <form action="/react/{{ req.id }}/like" method="POST" class="d-inline"
+                          onsubmit="handleReaction({{ req.id }}, 'like')"><button
+                            class="btn btn-light btn-sm rounded-circle p-1">👍</button></form>
+                        <form action="/react/{{ req.id }}/love" method="POST" class="d-inline"
+                          onsubmit="handleReaction({{ req.id }}, 'love')"><button
+                            class="btn btn-light btn-sm rounded-circle p-1">❤️</button></form>
+                        <form action="/react/{{ req.id }}/care" method="POST" class="d-inline"
+                          onsubmit="handleReaction({{ req.id }}, 'care')"><button
+                            class="btn btn-light btn-sm rounded-circle p-1">🥰</button></form>
+                        <form action="/react/{{ req.id }}/haha" method="POST" class="d-inline"
+                          onsubmit="handleReaction({{ req.id }}, 'haha')"><button
+                            class="btn btn-light btn-sm rounded-circle p-1">😆</button></form>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <button class="btn btn-sm flex-fill text-secondary border-0 shadow-none" data-bs-toggle="modal"
+                    data-bs-target="#facebookCommentModal{{ req.id }}">
+                    <i class="fa-regular fa-comment me-1"></i> Comment
+                  </button>
+                </div>
+              </div>
+
+              <!-- Facebook-style Popup Modal for Comments -->
+              <div class="modal fade" id="facebookCommentModal{{ req.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header bg-light">
+                      <h5 class="modal-title fw-bold text-dark fs-6">
+                        <i class="fa-solid fa-comments text-primary me-2"></i> Comments for {{ req.name }}'s
+                        Request
+                      </h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body bg-white">
+                      <div class="mb-4">
+                        {% if req.comments|length == 0 %}
+                        <p class="text-muted text-center small py-3">No comments yet. Be the first to
+                          comment!</p>
+                        {% endif %}
+
+                        {% for comment in req.comments %}
+                        <div
+                          class="p-3 rounded mb-3 border {% if comment.is_team == 1 %}bg-danger bg-opacity-10 border-danger{% else %}bg-light border-0{% endif %}">
+                          <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span
+                              class="fw-bold small {% if comment.is_team == 1 %}text-danger{% else %}text-primary{% endif %}">
+                              <i
+                                class="fa-solid {% if comment.is_team == 1 %}fa-shield-halved{% else %}fa-user{% endif %} me-1"></i>{{
+                              comment.team_name }}
+                            </span>
+                            <span class="text-muted" style="font-size: 0.75rem;">{{ comment.timestamp
+                              }}</span>
+                          </div>
+                          <p class="mb-0 small text-dark mt-1">{{ comment.text }}</p>
+                        </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                    <div class="modal-footer bg-light d-flex flex-column gap-2">
+                      <div class="w-100 d-flex gap-2">
+                        <form action="/add_comment/{{ req.id }}" method="POST"
+                          class="flex-grow-1 border p-2 rounded bg-white">
+                          <input type="hidden" name="is_team" value="0">
+                          <div class="mb-2">
+                            <input type="text" class="form-control form-control-sm" name="team_name"
+                              placeholder="Your Name" required>
+                          </div>
+                          <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" name="comment_text" placeholder="Write a comment..."
+                              required>
+                            <button type="submit" class="btn btn-primary"><i
+                                class="fa-solid fa-paper-plane"></i></button>
+                          </div>
+                        </form>
+
+                        <button class="btn btn-outline-danger btn-sm px-3 align-self-start" type="button"
+                          data-bs-toggle="collapse" data-bs-target="#teamReplyCollapse{{ req.id }}">
+                          <i class="fa-solid fa-shield-halved"></i> Team Reply
+                        </button>
+                      </div>
+
+                      <div class="collapse w-100 mt-2" id="teamReplyCollapse{{ req.id }}">
+                        <form action="/add_comment/{{ req.id }}" method="POST"
+                          class="border border-danger p-2 rounded bg-danger bg-opacity-10">
+                          <input type="hidden" name="is_team" value="1">
+                          <div class="row g-2 mb-2">
+                            <div class="col-7">
+                              <input type="text" class="form-control form-control-sm" name="team_name"
+                                placeholder="Team Name" required>
+                            </div>
+                            <div class="col-5">
+                              <input type="password" class="form-control form-control-sm" name="rescue_key"
+                                placeholder="Team Key" required>
+                            </div>
+                          </div>
+                          <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" name="comment_text"
+                              placeholder="Official team response..." required>
+                            <button type="submit" class="btn btn-danger">Send</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+
+            </div>
+          </div>
+        </div>
+
+        <!-- =================For Safety View================= -->
+        <div id="safety-view" class="safety-container" style="display: none;">
+
+          <!-- High Risk Alert Banner -->
+          <div class="safety-alert-banner">
+            <h3>Flood Safety Guidelines</h3><br>
+            <p><strong>"Stay informed. Stay prepared. Stay safe."</strong><br>
+              Learn essential safety action for before, during and after a flood below.</p>
+          </div>
+
+          <!-- 2-Column Responsive Dashboard Grid -->
+          <div class="safety-grid">
+
+            <!-- LEFT COLUMN -->
+            <div class="safety-col">
+
+              <!-- Action Phase Tabs & Content -->
+              <div class="safety-card">
+                <div class="phase-tabs">
+                  <button type="button" class="phase-tab active" data-phase="before">Before Flood</button>
+                  <button type="button" class="phase-tab" data-phase="during">During Flood</button>
+                  <button type="button" class="phase-tab" data-phase="after">After Flood</button>
+                </div>
+
+                <div id="phase-content" class="action-cards-list">
+                  <!-- Default: Before Flood Cards -->
+                  <div class="action-card">
+                    <div class="action-icon blue">
+                      <i data-lucide="package"></i>
+                    </div>
+                    <div class="action-info">
+                      <h4>Assemble Kit</h4>
+                      <p>Gather essential supplies, including water, food and medicine for at least 72 hours.</p>
+                    </div>
+                  </div>
+
+                  <div class="action-card">
+                    <div class="action-icon blue">
+                      <i data-lucide="home"></i>
+                    </div>
+                    <div class="action-info">
+                      <h4>Secure Property</h4>
+                      <p>Move furniture and electrical items to higher floors. Install flood barriers if available.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Emergency Checklist Card -->
+              <div class="safety-card">
+                <div class="card-title-bar">
+
+                  <h3>Emergency Checklist</h3>
+                </div>
+
+                <div class="checklist-items">
+                  <div class="check-item">
+                    <i data-lucide="check-circle-2" class="status-check-icon"></i>
+                    <span class="check-label">Drinking Water (3 Gallons/Person)</span>
+                    <i data-lucide="droplet" class="check-icon"></i>
+                  </div>
+
+                  <div class="check-item">
+                    <i data-lucide="check-circle-2" class="status-check-icon"></i>
+                    <span class="check-label">Non-perishable Food (3-day supply)</span>
+                    <i data-lucide="utensils" class="check-icon"></i>
+                  </div>
+
+                  <div class="check-item">
+                    <i data-lucide="check-circle-2" class="status-check-icon"></i>
+                    <span class="check-label">Prescription Medicine</span>
+                    <i data-lucide="pill" class="check-icon"></i>
+                  </div>
+                  <div class="check-item">
+                    <i data-lucide="check-circle-2" class="status-check-icon"></i>
+                    <span class="check-label">Flashlight & Extra Batteries</span>
+                    <i data-lucide="flashlight" class="check-icon"></i>
+                  </div>
+
+                  <div class="check-item">
+                    <i data-lucide="check-circle-2" class="status-check-icon"></i>
+                    <span class="check-label">Power Bank (Fully Charged)</span>
+                    <i data-lucide="battery-charging" class="check-icon"></i>
+                  </div>
+
+                  <div class="check-item">
+                    <i data-lucide="check-circle-2" class="status-check-icon"></i>
+                    <span class="check-label">Important Documents (Waterproof)</span>
+                    <i data-lucide="file-text" class="check-icon"></i>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="safety-col">
+
+              <!-- Emergency Contacts Card -->
+              <div class="safety-card">
+                <div class="card-title-bar space-between">
+                  <div class="title-left">
+                    <i data-lucide="phone-call" class="title-icon"></i>
+                    <h3>Emergency Contacts</h3>
+                  </div>
+                  <span class="sos-badge">SOS</span>
+                </div>
+
+                <div class="contact-list">
+                  <!-- Fire Department (With Multiple Phone Numbers) -->
+                  <div class="contact-item">
+                    <div class="contact-left">
+                      <i data-lucide="siren" class="icon-red"></i>
+                      <span>Fire Department (Thaton)</span>
+                    </div>
+
+                    <!-- Phone Dropdown Button & Menu -->
+                    <div class="phone-dropdown">
+                      <button class="call-btn" type="button">
+                        <i data-lucide="phone"></i>
+                      </button>
+
+                      <div class="dropdown-menu">
+                        <a href="tel:191"><i data-lucide="phone-call"></i> Hotline (191)</a>
+                        <a href="tel:05740051"><i data-lucide="phone-forwarded"></i>057 400 51</a>
+                        <a href="tel:0572040594"><i data-lucide="phone-forwarded"></i>057 204 059 4</a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- စေတနာ လူမှုကူညီရေးအသင်း -->
+                  <div class="contact-item">
+                    <div class="contact-left">
+                      <i data-lucide="cross" class="icon-red"></i>
+                      <div class="contact-info">
+                        <span class="contact-name">စေတနာ လူမှုကူညီရေးအသင်း</span>
+                        <small class="contact-address">အမှတ်၂၃၅-(၃)၊ လမ်းအောက်ကျင်းရပ်ကွက်၊ သထုံမြို</small>
+                      </div>
+                    </div>
+
+                    <!-- Phone Dropdown Button & Menu -->
+                    <div class="phone-dropdown">
+                      <button class="call-btn" type="button">
+                        <i data-lucide="phone"></i>
+                      </button>
+
+                      <div class="dropdown-menu">
+                        <a href="tel:09766955334"><i data-lucide="phone-forwarded"></i> 09766955334</a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ပီတိနှလုံးသား -->
+                  <div class="contact-item">
+                    <div class="contact-left">
+                      <i data-lucide="cross" class="icon-red"></i>
+                      <div class="contact-info">
+                        <span class="contact-name">ပီတိနှလုံးသား လူမှုကူညီရေးအသင်း</span>
+                        <small class="contact-address">မွန်ပြည်နယ်၊ သထုံမြိုနယ်၊ နောင်ဘိုကျေးရွာ</small>
+                      </div>
+                    </div>
+
+                    <!-- Phone Dropdown Button & Menu -->
+                    <div class="phone-dropdown">
+                      <button class="call-btn" type="button">
+                        <i data-lucide="phone"></i>
+                      </button>
+
+                      <div class="dropdown-menu">
+                        <a href="tel:09783887420"><i data-lucide="phone-forwarded"></i> 09783887420</a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- အဖြူရောင်နှလုံးသား -->
+                  <div class="contact-item">
+                    <div class="contact-left">
+                      <i data-lucide="cross" class="icon-red"></i>
+                      <div class="contact-info">
+                        <span class="contact-name">အဖြူရောင်နှလုံးသား လူမှုကူညီရေးအသင်း</span>
+                        <small class="contact-address">သထုံမြို့၊ ရွှေစာရံဘုရားကြီးတောင်ဘက်မုဒ်</small>
+                      </div>
+                    </div>
+
+                    <!-- Phone Dropdown Button & Menu -->
+                    <div class="phone-dropdown">
+                      <button class="call-btn" type="button">
+                        <i data-lucide="phone"></i>
+                      </button>
+
+                      <div class="dropdown-menu">
+                        <a href="tel:09425356516"><i data-lucide="phone-forwarded"></i> 09425356516</a>
+                        <a href="tel:09772334753"><i data-lucide="phone-forwarded"></i> 09772334753</a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- အကြင်နာတွဲလက် လူမှုကယ်ဆယ်ရေးအသင်း -->
+                  <div class="contact-item">
+                    <div class="contact-left">
+                      <i data-lucide="cross" class="icon-red"></i>
+                      <div class="contact-info">
+                        <span class="contact-name">အကြင်နာတွဲလက် လူမှုကယ်ဆယ်ရေးအသင်း</span>
+                        <small class="contact-address">နံပါတ်(35/36)၊အောက်ကျင်းရပ်ကွက်၊ရွှေစာရံဘုရားဘေး၊
+                          သထုံမြို့</small>
+                      </div>
+                    </div>
+
+                    <!-- Phone Dropdown Button & Menu -->
+                    <div class="phone-dropdown">
+                      <button class="call-btn" type="button">
+                        <i data-lucide="phone"></i>
+                      </button>
+
+                      <div class="dropdown-menu">
+                        <a href="tel:09797571000"><i data-lucide="phone-forwarded"></i> 09797571000</a>
+                        <a href="tel:09660571000"><i data-lucide="phone-forwarded"></i> 09660571000</a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- နှလုံးသားလှ လူမှုကယ်ဆယ်ရေးအသင်း -->
+                  <div class="contact-item">
+                    <div class="contact-left">
+                      <i data-lucide="cross" class="icon-red"></i>
+                      <div class="contact-info">
+                        <span class="contact-name">နှလုံးသားလှ လူမှုကယ်ဆယ်ရေးအသင်း</span>
+                        <small class="contact-address">နန်းတောင်လေး၊တံတားဦးကျေးရွာအုပ်စု၊သထုံမြို့နယ်</small>
+                      </div>
+                    </div>
+
+                    <!-- Phone Dropdown Button & Menu -->
+                    <div class="phone-dropdown">
+                      <button class="call-btn" type="button">
+                        <i data-lucide="phone"></i>
+                      </button>
+
+                      <div class="dropdown-menu">
+                        <a href="tel:09670449000"><i data-lucide="phone-forwarded"></i> 09670449000</a>
+                        <a href="tel:09887788433"><i data-lucide="phone-forwarded"></i> 09887788433</a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- မေတ္တာရှင်ရွာတန်းရှည်လူမှုကူညီရေးအသင်း -->
+                  <div class="contact-item">
+                    <div class="contact-left">
+                      <i data-lucide="cross" class="icon-red"></i>
+                      <div class="contact-info">
+                        <span class="contact-name">မေတ္တာရှင် (ရွာတန်းရှည်) လူမှုကူညီရေးအသင်း</span>
+                        <small class="contact-address">ပေါင်မြို့နယ်၊ရွာတန်းရှည်ကျေးရွာ</small>
+                      </div>
+                    </div>
+
+                    <!-- Phone Dropdown Button & Menu -->
+                    <div class="phone-dropdown">
+                      <button class="call-btn" type="button">
+                        <i data-lucide="phone"></i>
+                      </button>
+
+                      <div class="dropdown-menu">
+                        <a href="tel:09666683896"><i data-lucide="phone-forwarded"></i> 09666683896</a>
+                        <a href="tel:09766303400"><i data-lucide="phone-forwarded"></i> 09766303400</a>
+                        <a href="tel:09692646067"><i data-lucide="phone-forwarded"></i> 09692646067</a>
+                        <a href="tel:09672289937"><i data-lucide="phone-forwarded"></i> 09672289937</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+
+            </div>
+
+          </div>
+        </div>
+        <!-- =================For Support View================= -->
+        <div id="support-view" class="support-container" style="display: none;">
+
+          <!-- Page Header -->
+          <div class="support-header">
+            <h2>Help & Support Center</h2>
+            <p class="support-subtitle">Get technical assistance with AquaGuard telemetry, river sensors, and system
+              alert channels.</p>
+          </div>
+
+          <!-- 2-Column Main Layout -->
+          <div class="support-grid">
+
+            <!-- LEFT COLUMN: FAQ Accordion -->
+            <div class="support-col">
+              <div class="support-card">
+                <div class="card-title-bar">
+                  <i data-lucide="help-circle" class="title-icon"></i>
+                  <h3>Frequently Asked Questions</h3>
+                </div>
+
+                <div class="faq-accordion">
+                  <div class="faq-item">
+                    <button type="button" class="faq-question">
+                      <span>How does AquaGuard AI predict flood risks?</span>
+                      <i data-lucide="chevron-down" class="faq-chevron"></i>
+                    </button>
+                    <div class="faq-answer">
+                      <p>Our system processes real-time ultrasonic water depth sensors, precipitation forecasts, and
+                        river basin elevation dynamics to project potential overflow risks up to 72 hours in advance.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="faq-item">
+                    <button type="button" class="faq-question">
+                      <span>How do I set up mobile SMS emergency alerts?</span>
+                      <i data-lucide="chevron-down" class="faq-chevron"></i>
+                    </button>
+                    <div class="faq-answer">
+                      <p>You can register your phone number through Settings or by submitting a ticket with your
+                        township sector details. Alerts trigger automatically when local water levels hit warning
+                        thresholds.</p>
+                    </div>
+                  </div>
+
+                  <div class="faq-item">
+                    <button type="button" class="faq-question">
+                      <span>What should I do if a water level sensor appears offline?</span>
+                      <i data-lucide="chevron-down" class="faq-chevron"></i>
+                    </button>
+                    <div class="faq-answer">
+                      <p>If a sensor marker hasn't updated within 60 minutes, submit a ticket selecting "Sensor Data
+                        Inaccuracy". Our local engineering team in Mon State will verify telemetry hardware.</p>
+                    </div>
+                  </div>
+
+                  <div class="faq-item">
+                    <button type="button" class="faq-question">
+                      <span>Can local organizations integrate AquaGuard API data?</span>
+                      <i data-lucide="chevron-down" class="faq-chevron"></i>
+                    </button>
+                    <div class="faq-answer">
+                      <p>Yes, we offer REST API endpoints (`/api/v1/live-sensors`) for regional administrative units and
+                        emergency response groups. Request access via the support form.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Submit Ticket & Direct Contact -->
+            <div class="support-col">
+              <div class="support-card">
+                <div class="card-title-bar">
+                  <i data-lucide="message-square" class="title-icon"></i>
+                  <h3>Submit a Support Ticket</h3>
+                </div>
+
+                <form id="support-form" class="support-form">
+
+                  <!-- သင့် Access Key ထည့်ပါ -->
+                  <input type="hidden" name="access_key" value="5a0ff62d-ca3a-49b9-91d7-010f952e8f58">
+
+                  <div class="form-group">
+                    <label for="support-name">Your Name</label>
+                    <input type="text" name="name" placeholder="e.g AquaGard" required />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="support-email">Email or Phone Number</label>
+                    <input type="text" name="contact" placeholder="name@example.com or 09..." required />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="support-category">Issue Category</label>
+                    <select name="category" required>
+                      <option value="" disabled selected>Select a topic...</option>
+                      <option value="Technical / Dashboard Bug">Technical / Dashboard Bug</option>
+                      <option value="Sensor Data / Telemetry Issue">Sensor Data / Telemetry Issue</option>
+                      <option value="Alert Notifications">Alert Notifications</option>
+                      <option value="API Access Request">API Access Request</option>
+                      <option value="General Inquiry">General Inquiry</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="support-message">Message</label>
+                    <textarea name="message" rows="4" placeholder="Describe your issue or request in detail..."
+                      required></textarea>
+                  </div>
+
+                  <button type="submit" class="submit-btn">
+                    <i data-lucide="send"></i>
+                    <span>Submit Ticket</span>
+                  </button>
+
+                  <div id="form-feedback" class="form-feedback" style="display: none;"></div>
+                </form>
+              </div>
+
+              <!-- Direct Contact Box -->
+              <div class="support-card">
+                <div class="card-title-bar">
+                  <i data-lucide="headset" class="title-icon"></i>
+                  <h3>Direct Technical Support</h3>
+                </div>
+
+                <div class="channel-list">
+                  <a href="mailto:support@aquaguard.ai" class="channel-item">
+                    <div class="channel-icon blue"><i data-lucide="mail"></i></div>
+                    <div class="channel-info">
+                      <h4>Email Technical Team</h4>
+                      <p>support@aquaguard.ai</p>
+                    </div>
+                    <i data-lucide="external-link" class="link-icon"></i>
+                  </a>
+
+                  <a href="tel:+95912345678" class="channel-item">
+                    <div class="channel-icon green"><i data-lucide="phone-call"></i></div>
+                    <div class="channel-info">
+                      <h4>Hotline</h4>
+                      <p>+95 9 959 320 391</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="link-icon"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!---------------------For  Contact Section ---------------------------- -->
+        <section id="contact-view" class="contact-section" style="display: none;">
+          <div class="contact-title">
+            <h2>CONTACT US</h2>
+            <p>We're here to help and hear from you.</p>
+          </div>
+          <div class="contact-desktop-layout">
+            <div class="contact-left-col">
+              <div class="contact-info-grid">
+                <div class="contact-info-card">
+                  <i data-lucide="mail" class="contact-icon-main"></i>
+                  <h3>Email</h3>
+                  <p>nyanhtet4816@gmail.com</p>
+                </div>
+
+                <div class="contact-info-card">
+                  <i data-lucide="phone" class="contact-icon-main"></i>
+                  <h3>Phone</h3>
+                  <p>+95 9 123 456 789</p>
+                </div>
+
+                <div class="contact-info-card">
+                  <i data-lucide="map-pin" class="contact-icon-main"></i>
+                  <h3>Address</h3>
+                  <p>123 Tech Plaza, SF</p>
+                </div>
+
+                <div class="contact-info-card">
+                  <div class="contact-status-badge">
+                    <span class="dot"></span> FAST
+                  </div>
+                  <i data-lucide="clock" class="contact-icon-main"></i>
+                  <h3>Response Time</h3>
+                  <p>Within 2 - 24 Hours</p>
+                </div>
+              </div>
+
+              <div class="contact-form-card">
+                <h3>Send us a message</h3>
+                <form id="contactForm">
+                  <!-- Web3Forms Access Key ထည့်ရန် -->
+                  <input type="hidden" name="access_key" value="YOUR_ACCESS_KEY_HERE">
+
+                  <div class="contact-form-row">
+                    <div class="contact-form-group">
+                      <label for="name">Name</label>
+                      <input type="text" id="name" name="name" placeholder="John Doe" required />
+                    </div>
+
+                    <div class="contact-form-group">
+                      <label for="email">Email or Contact</label>
+                      <input type="text" id="email" name="contact" placeholder="john@example.com or 09..." required />
+                    </div>
+                  </div>
+
+                  <div class="contact-form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" placeholder="How can we help?" required />
+                  </div>
+
+                  <div class="contact-form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="4" placeholder="Type your message here..."
+                      required></textarea>
+                  </div>
+
+                  <button type="submit" class="contact-submit-btn">
+                    <i data-lucide="send"></i>
+                    <span>SEND MESSAGE</span>
+                  </button>
+
+                  <div id="formFeedback" class="contact-feedback" style="display: none;"></div>
+                </form>
+              </div>
+            </div>
+            <div class="contact-right-col">
+
+
+              <!-- Social Channels -->
+              <div class="contact-social-card">
+                <h3>Follow Us</h3>
+                <div class="contact-social-grid">
+
+                  <a href="#" class="contact-social-item">
+                    <div class="contact-social-icon">
+                      <!-- Lucide Facebook SVG တိုက်ရိုက်ထည့်ရန် -->
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                      </svg>
+                    </div>
+                    <span>Facebook</span>
+                  </a>
+                  <a href="#" class="contact-social-item">
+                    <div class="contact-social-icon"><i data-lucide="send"></i></div>
+                    <span>Telegram</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Help Callout Box -->
+              <div class="contact-support-card">
+                <h3>Need Help?</h3>
+                <p>Find answers to common questions in our Support Center.</p>
+                <a href="#support" class="contact-support-btn">
+                  <span>Visit Support Center</span>
+                  <i data-lucide="external-link"></i>
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+    <a class="active" href="#home"><i data-lucide="home"></i> Home</a>
+    <a href="#map"><i data-lucide="map"></i> Live Map</a>
+    <a href="#reports"><i data-lucide="file-text"></i> Reports</a>
+    <a href="#safety"><i data-lucide="shield-alert"></i> Safety</a>
+  </nav>
+  <!-- 🌟 Added Mesh Hotspot QR Modal Popup -->
+  <div class="modal fade" id="meshQrModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-center p-4">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold text-dark w-100"><i class="fa-solid fa-wifi text-primary me-2"></i> Connect
+            Emergency Mesh</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small mb-3">လိုင်းမရှိသည့်နေရာများတွင် အရေးပေါ်ချိတ်ဆက်ရန် ဖုန်းကင်မရာဖြင့် အောက်ပါ QR
+            ကို Scan ဖတ်ပါ</p>
+          <div class="bg-light p-3 rounded d-inline-block border shadow-sm">
+            <!-- နေရာတွင် သင်၏ Wi-Fi Hotspot QR Code ပုံ (သို့မဟုတ် URL) ကို ထည့်သွင်းနိုင်သည် -->
+            <img
+              src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=WIFI:S:Can I Be Him ^_^♏️;T:WPA;P:yyyyyy6y;;"
+              alt="Mesh Wi-Fi QR Code" class="img-fluid rounded">
+          </div>
+          <div class="mt-3">
+            <!-- <span class="badge bg-primary bg-opacity-10 text-primary p-2 w-100">SSID: AquaGuard_Mesh</span> -->
+            <!-- <span class="badge bg-primary bg-opacity-10 text-primary p-2 w-100">SSID: AquaGuard_Mesh</span> -->
+            <span class="badge bg-primary bg-opacity-10 text-primary p-2 w-100">SSID: Can I Be Him ^_^♏️</span>
+            <span class="badge  bg-opacity-10 text-primary p-2 w-60">PASSCODE: yyyyyy6y</span>
+          </div>
+          <!-- Browser သို့ တန်းဝင်ရန် Button (Gateway IP သို့မဟုတ် သက်ဆိုင်ရာ Web Link ထည့်ရန်) -->
+          <a href="https://10.28.86.158:7000" target="_blank" class="btn btn-primary w-100 py-2 rounded-pill fw-bold">
+            <i class="fa-solid fa-globe me-1"></i> Connect & Open in Browser
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 🌟 Added "How Offline Mesh Works" Details Modal Popup -->
+  <div class="modal fade" id="offlineMeshInfoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content shadow-lg border-0">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold">
+            <i class="fa-solid fa-network-wired me-2"></i> How Offline Mesh Network Works
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 text-dark">
+          <p class="text-muted mb-4">
+            အင်တာနက်လိုင်းလုံးဝမရှိတော့သော အခြေအနေများ (Internet Blackout / Natural Disasters) တွင် ဒေသတွင်း
+            ဖုန်းများနှင့် စက်ပစ္စည်းများ အချင်းချင်း ချိတ်ဆက်နိုင်ရန် တည်ဆောက်ထားသော Local Mesh နည်းပညာ အလုပ်လုပ်ပုံ
+            အသေးစိတ် -
+          </p>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded border h-100">
+                <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-wifi me-1"></i> 1. Direct Wi-Fi / Hotspot
+                  Connection</h6>
+                <p class="small text-muted mb-0">
+                  အနီးအနားရှိ ဖုန်းများ သို့မဟုတ် စာဗာစက်ပစ္စည်း (Server PC) မှ ထုတ်လွှင့်ပေးသော ဒေသတွင်း Wi-Fi (SSID)
+                  သို့ ဖုန်းကင်မရာဖြင့် QR Code scan ဖတ်၍ဖြစ်စေ၊ တိုက်ရိုက်ချိတ်ဆက်၍ဖြစ်စေ အင်တာနက်မလိုဘဲ
+                  ချိတ်ဆက်နိုင်ပါသည်။
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded border h-100">
+                <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-tower-broadcast me-1"></i> 2. Multi-Hop Data
+                  Relaying</h6>
+                <p class="small text-muted mb-0">
+                  အရေးပေါ် အကူအညီတောင်းခံမှု (SOS) များနှင့် သတင်းအချက်အလက်များကို အင်တာနက်လိုင်းမလိုဘဲ အနီးအနားရှိ
+                  အခြားချိတ်ဆက်ထားသော ဖုန်းများက တဆင့်ပြီးတဆင့် (Hop by Hop) ကူးပြောင်းပေးပို့နိုင်စွမ်း ရှိပါသည်။
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded border h-100">
+                <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-triangle-exclamation me-1"></i> 3. Immediate
+                  Local Alerts</h6>
+                <p class="small text-muted mb-0">
+                  ရေကြီးခြင်း အန္တရာယ် သတိပေးချက်များ၊ အရေးပေါ် အကူအညီတောင်းခံမှုများကို ဒေသတွင်းချိတ်ဆက်ထားသူ
+                  အချင်းချင်း ချက်ချင်းသိရှိနိုင်ပြီး ကယ်ဆယ်ရေးလုပ်ငန်းများကို အချိန်နှင့်တပြေးညီ ဆောင်ရွက်နိုင်စေပါသည်။
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded border h-100">
+                <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-shield-halved me-1"></i> 4. Secure &
+                  Decentralized</h6>
+                <p class="small text-muted mb-0">
+                  ပြင်ပဆာဗာများအပေါ် မှီခိုနေစရာမလိုဘဲ Local Network အတွင်းသာ လည်ပတ်သောကြောင့် အချက်အလက်လုံခြုံမှု
+                  ရှိပြီး မည်သည့် အရေးပေါ်အခြေအနေမျိုးတွင်မဆို အဆက်အသွယ်မပြတ်စေရန် အကောင်းဆုံး ထောက်ပံ့ပေးပါသည်။
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">ပိတ်မည်</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+
+</html>

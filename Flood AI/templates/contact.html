@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us</title>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-color: #f4f6f8;
+      --card-bg: #ffffff;
+      --primary-dark: #093c4a;
+      --primary-blue: #6366f1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --badge-bg: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar Header */
+    .header-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 32px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-nav i {
+      font-size: 1.2rem;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .header-nav h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Page Heading */
+    .title-section {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .title-section h2 {
+      font-size: 2rem;
+      color: var(--primary-dark);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .title-section p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-top: 8px;
+    }
+
+    /* Desktop Grid Layout: Left Side (Info/Form), Right Side (Map/Help/Socials) */
+    .desktop-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    @media (min-width: 900px) {
+      .desktop-layout {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+    }
+
+    .left-column,
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Quick Info Cards Grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .info-card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 16px;
+      position: relative;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+
+    .info-card i.icon-main {
+      font-size: 1.5rem;
+      color: var(--primary-dark);
+      margin-bottom: 12px;
+    }
+
+    .info-card h3 {
+      font-size: 1.1rem;
+      color: var(--primary-dark);
+      margin-bottom: 4px;
+    }
+
+    .info-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      word-break: break-word;
+    }
+
+    .status-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: var(--badge-bg);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-badge .dot {
+      width: 6px;
+      height: 6px;
+      background-color: #22c55e;
+      border-radius: 50%;
+    }
+
+    /* Form Container */
+    .form-card {
+      background: var(--card-bg);
+      padding: 28px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .form-card h3 {
+      font-size: 1.3rem;
+      color: var(--primary-dark);
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    .form-grid-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 600px) {
+      .form-grid-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      background-color: #f8fafc;
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: #cbd5e1;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      background-color: #fff;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background-color: var(--primary-dark);
+      color: #ffffff;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .submit-btn:hover {
+      background-color: #0c4e60;
+    }
+
+    /* Map Box */
+    .map-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .map-image-container {
+      position: relative;
+      height: 220px;
+      background-color: #cbd5e1;
+      background-image: url('https://tile.openstreetmap.org/14/2621/6333.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .map-pin {
+      width: 44px;
+      height: 44px;
+      background-color: var(--primary-dark);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .map-info {
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .map-info h4 {
+      font-size: 1.05rem;
+      color: var(--primary-dark);
+    }
+
+    .map-info p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .direction-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background-color: #a5f3fc;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: transform 0.2s;
+    }
+
+    .direction-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* Follow Us Box */
+    .social-section {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    .social-section h3 {
+      font-size: 1.15rem;
+      color: var(--primary-dark);
+      margin-bottom: 20px;
+    }
+
+    .social-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .social-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: transform 0.2s;
+    }
+
+    .social-item:hover {
+      transform: translateY(-2px);
+    }
+
+    .social-icon-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1.5px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-dark);
+      font-size: 1.2rem;
+      transition: all 0.2s;
+    }
+
+    .social-item:hover .social-icon-circle {
+      background-color: var(--primary-dark);
+      color: #ffffff;
+      border-color: var(--primary-dark);
+    }
+
+    .social-item span {
+      font-size: 0.75rem;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    /* Help Callout Banner */
+    .support-card {
+      background-color: var(--primary-dark);
+      color: white;
+      border-radius: 20px;
+      padding: 32px 24px;
+      text-align: center;
+      border: 2px solid var(--primary-blue);
+    }
+
+    .support-card h3 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .support-card p {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .support-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: white;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+
+    .support-btn:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="container">
+    <!-- Header Title Section -->
+    <section class="title-section">
+      <h2>CONTACT US</h2>
+      <p>We're here to help and hear from you.</p>
+    </section>
+
+    <!-- Responsive Desktop 2-Column Grid Layout -->
+    <div class="desktop-layout">
+
+      <!-- Left Column: Quick Info Cards & Message Form -->
+      <div class="left-column">
+        <!-- Contact Cards Grid -->
+        <div class="info-grid">
+          <div class="info-card">
+            <i class="fa-regular fa-envelope icon-main"></i>
+            <h3>Email</h3>
+            <p>support@proconnect.com</p>
+          </div>
+
+          <div class="info-card">
+            <i class="fa-solid fa-phone icon-main"></i>
+            <h3>Phone</h3>
+            <p>+1 (555) 000-1234</p>
+          </div>
+
+          <div class="info-card">
+            <i class="fa-solid fa-location-dot icon-main"></i>
+            <h3>Address</h3>
+            <p>123 Tech Plaza, SF</p>
+          </div>
+
+          <div class="info-card">
+            <div class="status-badge">
+              <span class="dot"></span> OPEN
+            </div>
+            <i class="fa-regular fa-clock icon-main"></i>
+            <h3>Hours</h3>
+            <p>Mon-Fri: 9AM - 6PM</p>
+          </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="form-card">
+          <h3>Send us a message</h3>
+          <form id="contactForm">
+            <div class="form-grid-row">
+              <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" placeholder="John Doe" required />
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="john@example.com" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <input type="text" id="subject" placeholder="How can we help?" required />
+            </div>
+
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" placeholder="Type your message here..." required></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">SEND MESSAGE</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right Column: Map, Social Media, and Support Card -->
+      <div class="right-column">
+        <!-- Headquarters Map -->
+        <div class="map-card">
+          <div class="map-image-container">
+            <div class="map-pin">
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+          </div>
+          <div class="map-info">
+            <div>
+              <h4>Headquarters</h4>
+              <p>San Francisco, CA</p>
+            </div>
+            <a href="#" class="direction-btn" title="Get Directions">
+              <i class="fa-solid fa-location-arrow"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Social Channels -->
+        <div class="social-section">
+          <h3>Follow Us</h3>
+          <div class="social-grid">
+            <a href="#" class="social-item">
+              <div class="social-icon-circle"><i class="fa-solid fa-code"></i></div>
+              <span>GitHub</span>
+            </a>
+            <a href="#" class="social-item">
+              <div class="social-icon-circle"><i class="fa-solid fa-qrcode"></i></div>
+              <span>Facebook</span>
+            </a>
+            <a href="#" class="social-item">
+              <div class="social-icon-circle"><i class="fa-solid fa-briefcase"></i></div>
+              <span>LinkedIn</span>
+            </a>
+            <a href="#" class="social-item">
+              <div class="social-icon-circle"><i class="fa-regular fa-paper-plane"></i></div>
+              <span>Telegram</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Support Callout Box -->
+        <div class="support-card">
+          <h3>Need Help?</h3>
+          <p>Find answers to common questions in our Support Center.</p>
+          <a href="#" class="support-btn">
+            Visit Support Center <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('contactForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      alert(`Thank you, ${name}! Your message has been sent successfully.`);
+      this.reset();
+    });
+  </script>
+</body>
+
+</html>

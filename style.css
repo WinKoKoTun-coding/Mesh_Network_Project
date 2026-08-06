@@ -1,0 +1,809 @@
+/* ======================================================== */
+/* 🎨 DESIGN VARIABLES & SYSTEM COLORS (Light & Dark Mode)  */
+/* ======================================================== */
+:root {
+    --bg-main: #06060a;
+    --panel-bg: #0f0f15;
+    --panel-border: #1a1a26;
+
+    /* Brand Accent Colors */
+    --accent-green: #00ff88;
+    --accent-green-hover: #00cc6a;
+    --accent-red: #ff3344;
+    --accent-red-hover: #cc2233;
+    --accent-blue: #4d82ff;
+    --accent-blue-hover: #356be6;
+
+    /* Neutral Grays */
+    --text-primary: #ffffff;
+    --text-muted: #88889d;
+    --scrollbar-track: #0b0b10;
+    --scrollbar-thumb: #222230;
+
+    --card-item-bg: #14141e;
+    --input-bg-color: #09090d;
+    --input-border-color: #222232;
+    --modal-bg-color: #12121c;
+}
+
+[data-theme="light"] {
+    --bg-main: #f0f2f5;
+    --panel-bg: #ffffff;
+    --panel-border: #d1d5db;
+
+    /* Brand Accent Colors (Adjusted for Light mode clarity if needed) */
+    --accent-green: #00a859;
+    --accent-green-hover: #008745;
+    --accent-red: #e60012;
+    --accent-red-hover: #b3000e;
+    --accent-blue: #0066cc;
+    --accent-blue-hover: #004d99;
+
+    /* Neutral Grays for Light Mode */
+    --text-primary: #111827;
+    --text-muted: #6b7280;
+    --scrollbar-track: #e5e7eb;
+    --scrollbar-thumb: #9ca3af;
+
+    --card-item-bg: #f9fafb;
+    --input-bg-color: #f3f4f6;
+    --input-border-color: #d1d5db;
+    --modal-bg-color: #ffffff;
+}
+
+/* ======================================================== */
+/* ✨ CUSTOM SCROLLBAR                                      */
+/* ======================================================== */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-green);
+}
+
+/* ======================================================== */
+/* 🌐 BASE STYLES & RESET                                   */
+/* ======================================================== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 15px;
+    line-height: 1.5;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ======================================================== */
+/* 📐 GRID CONTAINER                                        */
+/* ======================================================== */
+.main-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    align-items: stretch;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding-top: 10px;
+}
+
+/* ======================================================== */
+/* 🛡️ COMMON PANELS                                         */
+/* ======================================================== */
+.radar-panel,
+.chat-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ======================================================== */
+/* 📡 RADAR SECTION                                         */
+/* ======================================================== */
+.radar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.title {
+    margin: 0 0 6px 0;
+    font-size: 1.6rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    margin: 0 0 24px 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Radar Screen */
+.radar-screen {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 1 / 1;
+    background: radial-gradient(circle, #091a10 0%, #030704 100%);
+    border: 2px solid rgba(0, 255, 136, 0.2);
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 35px rgba(0, 255, 136, 0.08);
+    margin-bottom: 25px;
+}
+
+/* Radar Scanning Laser Line */
+.radar-laser {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    background: linear-gradient(45deg, rgba(0, 255, 136, 0.35) 0%, transparent 75%);
+    transform-origin: bottom right;
+    top: 0;
+    left: 0;
+    animation: radar-sweep 4s linear infinite;
+    border-right: 1px solid rgba(0, 255, 136, 0.5);
+}
+
+/* Radar Rings */
+.ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px dashed rgba(0, 255, 136, 0.15);
+    border-radius: 50%;
+}
+
+.ring-1 {
+    width: 30%;
+    height: 30%;
+}
+
+.ring-2 {
+    width: 60%;
+    height: 60%;
+}
+
+.ring-3 {
+    width: 90%;
+    height: 90%;
+}
+
+.center-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-green);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--accent-green);
+    z-index: 5;
+}
+
+/* Radar Dynamic Dots */
+.radar-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s;
+}
+
+.radar-dot.active {
+    background-color: var(--accent-green);
+    box-shadow: 0 0 12px var(--accent-green), 0 0 20px var(--accent-green);
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.radar-dot.inactive {
+    background-color: var(--accent-red);
+    box-shadow: 0 0 12px var(--accent-red);
+}
+
+.radar-dot:hover {
+    transform: translate(-50%, -50%) scale(1.4);
+    z-index: 10;
+    filter: brightness(1.2);
+}
+
+/* ======================================================== */
+/* 📱 DEVICE LIST                                           */
+/* ======================================================== */
+#device-list-container {
+    margin-top: 15px;
+}
+
+.panel-header {
+    border-bottom: 2px solid var(--panel-border);
+    padding-bottom: 12px;
+    color: var(--accent-green);
+    margin: 0 0 16px 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+#device-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.device-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-item-bg);
+    margin-bottom: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    border-left: 4px solid var(--accent-green);
+    gap: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.device-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.device-info strong {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-primary);
+}
+
+.device-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.chat-btn {
+    background: var(--accent-green);
+    color: #000;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
+}
+
+.chat-btn:hover {
+    background: var(--accent-green-hover);
+}
+
+.chat-btn:active {
+    transform: scale(0.97);
+}
+
+.empty-list {
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: 24px 0;
+}
+
+/* ======================================================== */
+/* 🚨 SOS BROADCAST SECTION                                 */
+/* ======================================================== */
+.sos-box {
+    background: var(--card-item-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 24px;
+}
+
+.sos-header {
+    color: var(--accent-red);
+    margin: 0 0 16px 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.form-group {
+    margin-bottom: 14px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--input-bg-color);
+    border: 1px solid var(--input-border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-red);
+    box-shadow: 0 0 0 3px rgba(255, 51, 68, 0.15);
+}
+
+.sos-btn {
+    width: 100%;
+    background: var(--accent-red);
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.sos-btn:hover {
+    background: var(--accent-red-hover);
+    box-shadow: 0 0 20px rgba(255, 51, 68, 0.35);
+}
+
+/* ======================================================== */
+/* ✉️ LIVE INBOX & MESSAGES FEED                            */
+/* ======================================================== */
+.message-feed {
+    max-height: 430px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.msg-card {
+    padding: 14px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    background: var(--card-item-bg);
+    border: 1px solid var(--panel-border);
+}
+
+.msg-sos {
+    background: var(--card-item-bg);
+    border-left: 5px solid var(--accent-red);
+    border: 2px solid var(--accent-red);
+    animation: blink 2s infinite;
+}
+
+.msg-rescue-resp {
+    background: var(--card-item-bg);
+    border-left: 5px solid var(--accent-green);
+}
+
+.msg-direct {
+    background: var(--card-item-bg);
+    border-left: 5px solid var(--accent-blue);
+}
+
+.msg-header {
+    font-weight: bold;
+    font-size: 10.5px;
+    margin-bottom: 6px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+}
+
+.msg-body {
+    word-break: break-word;
+    color: var(--text-primary);
+}
+
+.msg-meta {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.rescue-contact-highlight {
+    background: var(--accent-red);
+    color: #fff;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.empty-inbox {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 30px 0;
+    font-style: italic;
+}
+
+/* ======================================================== */
+/* 💬 MODERN DM MODAL                                       */
+/* ======================================================== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--modal-bg-color);
+    border: 1px solid var(--panel-border);
+    padding: 28px 24px;
+    width: 90%;
+    max-width: 380px;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    position: relative;
+    box-sizing: border-box;
+    margin: 0 15px;
+    color: var(--text-primary);
+}
+
+.close-btn {
+    position: absolute;
+    right: 18px;
+    top: 12px;
+    font-size: 26px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: var(--text-primary);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.checkbox-group input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-green);
+    cursor: pointer;
+}
+
+.send-dm-btn {
+    width: 100%;
+    background: var(--accent-blue);
+    color: #fff;
+    font-weight: bold;
+    padding: 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-top: 20px;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.send-dm-btn:hover {
+    background: var(--accent-blue-hover);
+    box-shadow: 0 0 15px rgba(77, 130, 255, 0.25);
+}
+
+/* ======================================================== */
+/* 📌 Public Thread Reply & Inline UI စနစ်သစ်အတွက် CSS       */
+/* ======================================================== */
+.replies-thread-container {
+    background: var(--card-item-bg) !important;
+    border: 1px solid var(--panel-border) !important;
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+    margin-top: 12px !important;
+    text-align: left !important;
+}
+
+.reply-item {
+    font-size: 13px !important;
+    border-bottom: 1px solid var(--panel-border) !important;
+    padding: 6px 0 !important;
+    color: #fff !important;
+}
+
+.reply-item:last-child {
+    border-bottom: none !important;
+}
+
+.replies-container {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--card-item-bg);
+    border-radius: 8px;
+}
+
+.see-more-btn {
+    background: none !important;
+    border: none !important;
+    color: var(--accent-green) !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+    padding: 6px 0 0 0 !important;
+    display: block !important;
+    width: 100% !important;
+    text-align: left !important;
+    font-weight: bold !important;
+    transition: color 0.2s ease;
+}
+
+.see-more-btn:hover {
+    color: var(--accent-green-hover) !important;
+    text-decoration: underline !important;
+}
+
+.reply-input-box-trigger {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 12px !important;
+}
+
+.reply-input-box-trigger input {
+    flex: 1 !important;
+    background: var(--input-bg-color) !important;
+    border: 1px solid var(--input-border-color) !important;
+    border-radius: 6px !important;
+    color: var(--text-primary) !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+}
+
+.reply-input-box-trigger input:focus {
+    border-color: var(--accent-green) !important;
+    outline: none !important;
+}
+
+.reply-input-box-trigger button {
+    background: var(--panel-bg) !important;
+    color: var(--accent-green) !important;
+    border: 1px solid var(--panel-border) !important;
+    padding: 0 16px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    font-weight: bold !important;
+    transition: all 0.2s ease;
+}
+
+.reply-input-box-trigger button:hover {
+    background: var(--accent-green) !important;
+    color: #000 !important;
+}
+
+.reply-count-badge {
+    background: var(--panel-bg);
+    color: var(--accent-green);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid var(--accent-green);
+    display: inline-block;
+}
+
+.reply-trigger-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px dashed var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.rescue-reply {
+    background: rgba(0, 255, 136, 0.1) !important;
+    border-left: 4px solid var(--accent-green) !important;
+    padding-left: 10px !important;
+}
+
+/* ======================================================== */
+/* 📸🎙️ MEDIA & VOICE RECORDING STYLES                      */
+/* ======================================================== */
+.media-preview-container {
+    position: relative;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.media-preview-container img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--panel-border);
+}
+
+.media-preview-container .remove-media {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--accent-red);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.recording-active {
+    background: var(--accent-red) !important;
+    color: #fff !important;
+    animation: pulse-recording 1.2s infinite;
+}
+
+@keyframes pulse-recording {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 51, 68, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 8px rgba(255, 51, 68, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 51, 68, 0);
+    }
+}
+
+.msg-media-img {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 6px;
+    margin-top: 6px;
+    display: block;
+    border: 1px solid var(--panel-border);
+}
+
+.msg-voice-player {
+    margin-top: 6px;
+    width: 100%;
+    max-width: 220px;
+    height: 32px;
+}
+
+/* ======================================================== */
+/* 📱 MEDIA QUERIES (MOBILE, TABLET, PORTRAIT VIEWS)        */
+/* ======================================================== */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .main-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .radar-panel,
+    .chat-panel {
+        padding: 18px;
+    }
+
+    .radar-screen {
+        max-width: 270px;
+        margin-bottom: 15px;
+    }
+
+    .title {
+        font-size: 1.4rem;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .sos-btn,
+    .send-dm-btn {
+        font-size: 15px;
+    }
+}
+
+/* ======================================================== */
+/* 🔄 ANIMATIONS                                            */
+/* ======================================================== */
+@keyframes radar-sweep {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        filter: brightness(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.25);
+        filter: brightness(1.2);
+        opacity: 0.85;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        filter: brightness(1);
+        opacity: 1;
+    }
+}
+
+@keyframes blink {
+    0% {
+        border-color: var(--accent-red);
+    }
+
+    50% {
+        border-color: #ffaa00;
+    }
+
+    100% {
+        border-color: var(--accent-red);
+    }
+}

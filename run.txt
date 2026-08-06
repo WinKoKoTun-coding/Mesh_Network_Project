@@ -1,0 +1,34 @@
+python -m http.server 8000 => run
+
+python server.py => run
+
+Window Security defender => close 
+
+
+Use VPN open for Ngrok terminal +
+
+C:\ngrok => ngrok.exe click  => path after 
+
+                .\ngrok config add-authtoken 3GV3mfLE1jNWiKovibceCq6DwmG_Y87DbPD4dUQpC2J8NEAF => after
+
+
+                                                                                                        .\ngrok http 5000
+                                                                                                        .\ngrok http 5000 --region ap
+
+Same Network
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

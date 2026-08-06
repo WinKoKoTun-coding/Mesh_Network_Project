@@ -1,0 +1,411 @@
+html=>v.1
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesh Network - Rescue Dashboard</title>
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div class="container-fluid py-4 dashboard-container">
+
+        <!-- Header & Summary Stat Cards -->
+        <div class="row mb-4 align-items-center g-3">
+            <div class="col-lg-6">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-2 bg-danger text-white rounded-3 fs-5"><i
+                            class="fa-solid fa-tower-broadcast"></i></span>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark">Mesh Network Rescue Dashboard</h4>
+                        <p class="text-muted small mb-0">Timeline of emergency calls and response by rescue teams</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="stat-card p-2 text-center">
+                            <span class="text-muted small d-block">Grand total</span>
+                            <h5 class="fw-bold mb-0 text-dark">{{ total_req }}</h5>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-card p-2 text-center">
+                            <span class="text-danger small fw-bold d-block">Very urgent</span>
+                            <h5 class="fw-bold mb-0 text-danger">{{ high_urgency }}</h5>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-card p-2 text-center">
+                            <span class="text-success small fw-bold d-block">Completion</span>
+                            <h5 class="fw-bold mb-0 text-success">{{ resolved_count }}</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Side - Request Form -->
+            <div class="col-lg-4">
+                <div class="custom-card p-4 sticky-top" style="top: 20px;">
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                        <i class="fa-solid fa-bullhorn text-danger fs-5"></i>
+                        <h5 class="mb-0 fw-bold text-dark">Request help</h5>
+                    </div>
+                    <form action="/add_request" method="POST" id="requestForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-secondary">Name</label>
+                            <input type="text" class="form-control" name="name" required
+                                placeholder="Your name or representative">
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small text-secondary">Phone number</label>
+                                <input type="text" class="form-control" name="phone" required
+                                    placeholder="09-xxxxxxxxx">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small text-secondary">Trapped population</label>
+                                <input type="number" class="form-control" name="people_count" min="1" value="1"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-secondary">Location</label>
+                            <input type="text" class="form-control" name="location" required
+                                placeholder="Street, township">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-secondary">Emergency level</label>
+                            <select class="form-select" name="urgency">
+                                <option value="High">Very urgent (High)</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="Low">Ordinary</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-secondary">Status details</label>
+                            <textarea class="form-control" name="message" id="messageBox" rows="3" required
+                                placeholder="Write down the requirements in detail..."></textarea>
+
+                            <!-- Quick Request Buttons -->
+                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                <span class="quick-btn" onclick="setQuickMsg('I am stuck upstairs due to flooding.')"><i
+                                        class="fa-solid fa-water"></i> Flooded</span>
+                                <span class="quick-btn"
+                                    onclick="setQuickMsg('I need food and clean water urgently.')"><i
+                                        class="fa-solid fa-utensils"></i> Like food</span>
+                                <span class="quick-btn" onclick="setQuickMsg('Medical assistance required.')"><i
+                                        class="fa-solid fa-kit-medical"></i> Need medicine</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100 py-2 fw-semibold rounded-pill">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Import
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Side - Timeline Feed -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-stream me-2 text-danger"></i> Live Request
+                        Timeline</h5>
+                    <span class="text-muted small bg-white px-3 py-1 rounded-pill border"><i
+                            class="fa-solid fa-shield-halved text-success me-1"></i> Rescue Team Key required</span>
+                </div>
+
+                {% for req in requests %}
+                <div class="timeline-item">
+                    <!-- Post Header -->
+                    <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-1">{{ req.name }}</h5>
+                            <p class="text-muted small mb-1">
+                                <i class="fa-solid fa-phone text-success me-1"></i>{{ req.phone }}
+                                <span class="mx-1">•</span>
+                                <i class="fa-solid fa-users text-primary me-1"></i>Population: {{ req.people_count }}
+                                people
+                            </p>
+                            <p class="text-muted small mb-0">
+                                <i class="fa-solid fa-location-dot text-danger me-1"></i>{{ req.location }}
+                                <span class="mx-2">•</span>
+                                <i class="fa-regular fa-clock me-1"></i>{{ req.timestamp }}
+                            </p>
+                        </div>
+                        <div class="d-flex gap-1 align-items-center">
+                            {% if req.urgency == 'High' %}
+                            <span
+                                class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1">Very
+                                urgent</span>
+                            {% elif req.urgency == 'Moderate' %}
+                            <span
+                                class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1">Moderate</span>
+                            {% else %}
+                            <span
+                                class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">Ordinary</span>
+                            {% endif %}
+
+                            <!-- Status Badge -->
+                            {% if req.status == 'Resolved' %}
+                            <span class="badge bg-success text-white px-2 py-1">Resolved</span>
+                            {% elif req.status == 'In Progress' %}
+                            <span class="badge bg-warning text-dark px-2 py-1">In Progress</span>
+                            {% else %}
+                            <span class="badge bg-info text-dark px-2 py-1">Pending</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Message Content -->
+                    <div class="p-3 bg-light rounded-3 text-secondary my-3 fs-6">
+                        {{ req.message }}
+                    </div>
+
+                    <!-- CONDITIONAL: Hide Change Status if Resolved -->
+                    {% if req.status != 'Resolved' %}
+                    <form action="/update_status/{{ req.id }}" method="POST" class="bg-white p-2 rounded border mb-3">
+                        <div class="d-flex gap-2 align-items-center flex-wrap">
+                            <span class="small fw-bold text-secondary text-nowrap"><i
+                                    class="fa-solid fa-key text-warning me-1"></i>Change status:</span>
+                            <select class="form-select form-select-sm flex-grow-1" name="status"
+                                style="min-width: 130px;">
+                                <option value="Pending" {% if req.status=='Pending' %}selected{% endif %}>Pending
+                                </option>
+                                <option value="In Progress" {% if req.status=='In Progress' %}selected{% endif %}>In
+                                    Progress</option>
+                                <option value="Resolved" {% if req.status=='Resolved' %}selected{% endif %}>Resolved
+                                </option>
+                            </select>
+                            <input type="password" class="form-control form-control-sm" name="rescue_key"
+                                placeholder="Team Key" style="width: 110px;" required>
+                            <button type="submit" class="btn btn-dark btn-sm px-3 text-nowrap">Change</button>
+                        </div>
+                    </form>
+                    {% endif %}
+
+                    <hr class="text-muted opacity-25">
+
+                    <!-- Responses & Interactive Action Icons -->
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="text-secondary small fw-bold mb-0">
+                                <i class="fa-solid fa-comments me-1"></i> Responses / Comments
+                            </h6>
+                            <div class="d-flex gap-2">
+                                <!-- User Comment Icon Trigger -->
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal"
+                                    data-bs-target="#userCommentModal{{ req.id }}">
+                                    <i class="fa-regular fa-comment-dots me-1"></i> Add Comment
+                                </button>
+                                <!-- Rescue Team Reply Icon Trigger -->
+                                <button class="btn btn-outline-danger btn-sm rounded-pill px-3" data-bs-toggle="modal"
+                                    data-bs-target="#rescueReplyModal{{ req.id }}">
+                                    <i class="fa-solid fa-shield-halved me-1"></i> Team Reply
+                                </button>
+                            </div>
+                        </div>
+
+                        {% for comment in req.comments %}
+                        <div class="bg-light p-2 rounded mb-2 border">
+                            <span class="fw-bold text-danger small"><i class="fa-solid fa-shield-halved me-1"></i>{{
+                                comment.team }}</span>
+                            <p class="mb-0 small text-dark">{{ comment.text }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+                <!-- Modal: User Comment Pop-up Form -->
+                <div class="modal fade" id="userCommentModal{{ req.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title fs-6 fw-bold"><i
+                                        class="fa-regular fa-comment-dots text-primary me-1"></i> User Comment - {{
+                                    req.name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <form action="/add_comment/{{ req.id }}" method="POST">
+                                <div class="modal-body">
+                                    <input type="hidden" name="is_team" value="0">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Your Name</label>
+                                        <input type="text" class="form-control" name="team_name"
+                                            placeholder="Enter your name" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Message</label>
+                                        <textarea class="form-control" name="comment_text" rows="3"
+                                            placeholder="Write your comment..." required></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary btn-sm">Send Comment</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal: Rescue Team Reply Pop-up Form -->
+                <div class="modal fade" id="rescueReplyModal{{ req.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title fs-6 fw-bold"><i class="fa-solid fa-shield-halved me-1"></i>
+                                    Rescue Team Reply - {{ req.name }}</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <form action="/add_comment/{{ req.id }}" method="POST">
+                                <div class="modal-body">
+                                    <input type="hidden" name="is_team" value="1">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Rescue Team Name</label>
+                                        <input type="text" class="form-control" name="team_name"
+                                            placeholder="e.g., Rescue Team (1)" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Response Message</label>
+                                        <textarea class="form-control" name="comment_text" rows="3"
+                                            placeholder="Write response..." required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-danger"><i
+                                                class="fa-solid fa-key"></i> Team Key Required</label>
+                                        <input type="password" class="form-control" name="rescue_key"
+                                            placeholder="Enter team key" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger btn-sm">Submit Reply</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Message Script -->
+    <script>
+        function setQuickMsg(text) {
+            document.getElementById('messageBox').value = text;
+        }
+    </script>
+
+    <!-- Bootstrap JS Bundle CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
+
+
+
+
+<============>
+app.py=>v.1
+
+from flask import Flask, render_template, request, redirect, url_for
+from datetime import datetime
+
+app = Flask(__name__)
+
+# လုံခြုံရေးအတွက် Rescue Team သော့ချက် (Secret Key)
+RESCUE_SECRET_KEY = "rescue123"
+
+# ယာယီဒေတာ စာရင်း
+requests_data = [
+    {
+        "id": 1,
+        "name": "ကိုအောင်အောင်",
+        "phone": "09-123456789",
+        "people_count": 3,
+        "location": "ဗဟန်းမြို့နယ်၊ ရန်ကုန်",
+        "urgency": "High",
+        "message": "ရေကြီးနေလို့ အိမ်ပေါ်ထပ်မှာ ပိတ်မိနေပါတယ်၊ အစားအသောက်နဲ့ ဆေးဝါး အရေးပေါ်လိုနေပါတယ်။",
+        "status": "Pending", # Pending, In Progress, Resolved
+        "timestamp": "2026-07-25 10:30 AM",
+        "comments": [
+            {"team": "ကယ်ဆယ်ရေးအဖွဲ့ (၁)", "text": "အဖွဲ့ထွက်ခွာလာပါပြီ၊ ခဏစောင့်ပါ။"}
+        ]
+    }
+]
+
+@app.route('/')
+def rescue_dashboard():
+    # Summary အတွက် ကိန်းဂဏန်းများ တွက်ချက်ခြင်း
+    total_req = len(requests_data)
+    high_urgency = sum(1 for r in requests_data if r["urgency"] == "High")
+    resolved_count = sum(1 for r in requests_data if r["status"] == "Resolved")
+    
+    return render_template('rescue_timeline.html', 
+                           requests=requests_data, 
+                           total_req=total_req, 
+                           high_urgency=high_urgency, 
+                           resolved_count=resolved_count)
+
+@app.route('/add_request', methods=['POST'])
+def add_request():
+    new_item = {
+        "id": len(requests_data) + 1,
+        "name": request.form.get('name'),
+        "phone": request.form.get('phone'),
+        "people_count": request.form.get('people_count'),
+        "location": request.form.get('location'),
+        "urgency": request.form.get('urgency'),
+        "message": request.form.get('message'),
+        "status": "Pending",
+        "timestamp": datetime.now().strftime("%Y-%m-%d %I:%M %p"),
+        "comments": []
+    }
+    requests_data.insert(0, new_item)
+    return redirect(url_for('rescue_dashboard'))
+
+@app.route('/update_status/<int:req_id>', methods=['POST'])
+def update_status(req_id):
+    entered_key = request.form.get('rescue_key')
+    new_status = request.form.get('status')
+    
+    if entered_key == RESCUE_SECRET_KEY:
+        for item in requests_data:
+            if item["id"] == req_id:
+                item["status"] = new_status
+                break
+    return redirect(url_for('rescue_dashboard'))
+
+@app.route('/add_comment/<int:req_id>', methods=['POST'])
+def add_comment(req_id):
+    entered_key = request.form.get('rescue_key')
+    team_name = request.form.get('team_name')
+    comment_text = request.form.get('comment_text')
+    
+    if entered_key == RESCUE_SECRET_KEY:
+        for item in requests_data:
+            if item["id"] == req_id:
+                item["comments"].append({"team": team_name, "text": comment_text})
+                break
+    return redirect(url_for('rescue_dashboard'))
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
